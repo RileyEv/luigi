@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T14:30:58+01:00
+# @Last modified time: 2018-08-07T14:35:12+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -1488,9 +1488,8 @@ class Scheduler(object):
         tasks = self._state._filter_tasks_by_namespace(
             self._state._status_tasks[
                 status
-            ].items() if status else self._state._tasks, namespace, iterator=True)
+            ].items() if status else self._state._tasks, namespace, iterator=True).values()
         for task in filter(filter_func, tasks):
-            task = task[0]
             if task.status != PENDING or not upstream_status or upstream_status == self._upstream_status(task.id, upstream_status_table):
                 serialized = self._serialize_task(task.id, include_deps=False)
                 result[task.id] = serialized

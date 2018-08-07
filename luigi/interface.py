@@ -1,3 +1,12 @@
+# @Author: Riley Evans
+# @Date:   2018-08-02T11:39:56+01:00
+# @Email:  revans35@jaguarlandrover.com
+# @Project: DIY Report Automation
+# @Filename: interface.py
+# @Last modified by:   Riley Evans
+# @Last modified time: 2018-08-07T12:11:57+01:00
+
+
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012-2015 Spotify AB
@@ -149,7 +158,18 @@ class _WorkerSchedulerFactory(object):
 
     def create_worker(self, scheduler, worker_processes, assistant=False):
         return worker.Worker(
-            scheduler=scheduler, worker_processes=worker_processes, assistant=assistant)
+            scheduler=scheduler,
+            worker_processes=worker_processes,
+            assistant=assistant
+        )
+
+    def create_namespace_worker(self, scheduler, worker_processes, namespace, assistant=False):
+        return worker.NamespaceWorker(
+            scheduler=scheduler,
+            worker_processes=worker_processes,
+            namespace=namespace,
+            assistant=assistant
+        )
 
 
 def _schedule_and_run(tasks, worker_scheduler_factory=None, override_defaults=None):
@@ -202,8 +222,70 @@ def _schedule_and_run(tasks, worker_scheduler_factory=None, override_defaults=No
     logger = logging.getLogger('luigi-interface')
     with worker:
         for t in tasks:
-            success &= worker.add(t, env_params.parallel_scheduling, env_params.parallel_scheduling_processes)
+            success &= worker.add(
+                t, env_params.parallel_scheduling, env_params.parallel_scheduling_processes)
         logger.info('Done scheduling tasks')
+        success &= worker.run()
+    logger.info(execution_summary.summary(worker))
+    return dict(success=success, worker=worker)
+
+
+def _run_namespace_tasks(namespace, tasks=None, worker_scheduler_factory=None, override_defaults=None):
+    """
+    :param namespace:
+    :param worker_scheduler_factory:
+    :param override_defaults:
+    :return: True if all tasks and their dependencies were successfully run (or already completed);
+             False if any error occurred.
+    """
+
+    if worker_scheduler_factory is None:
+        worker_scheduler_factory = _WorkerSchedulerFactory()
+    if override_defaults is None:
+        override_defaults = {}
+    env_params = core(**override_defaults)
+    # search for logging configuration path first on the command line, then
+    # in the application config file
+    logging_conf = env_params.logging_conf_file
+    if logging_conf != '' and not os.path.exists(logging_conf):
+        raise Exception(
+            "Error: Unable to locate specified logging configuration file!"
+        )
+
+    if not configuration.get_config().getboolean(
+            'core', 'no_configure_logging', False):
+        setup_interface_logging(logging_conf, env_params.log_level)
+
+    kill_signal = signal.SIGUSR1 if env_params.take_lock else None
+    if (not env_params.no_lock and
+            not(lock.acquire_for(env_params.lock_pid_dir, env_params.lock_size, kill_signal))):
+        raise PidLockAlreadyTakenExit()
+
+    if env_params.local_scheduler:
+        raise RuntimeError('Cannot use namespace with local scheduler.')
+    else:
+        if env_params.scheduler_url != '':
+            url = env_params.scheduler_url
+        else:
+            url = 'http://{host}:{port:d}/'.format(
+                host=env_params.scheduler_host,
+                port=env_params.scheduler_port,
+            )
+        sch = worker_scheduler_factory.create_remote_scheduler(url=url)
+
+    worker = worker_scheduler_factory.create_namespace_worker(
+        scheduler=sch, worker_processes=env_params.workers, namespace=namespace, assistant=env_params.assistant)
+
+    success = True
+    logger = logging.getLogger('luigi-interface')
+    with worker:
+        if namespace == 'init':
+            for t in tasks:
+                success &= worker.add(
+                    t, env_params.parallel_scheduling, env_params.parallel_scheduling_processes)
+            logger.info('Done scheduling tasks')
+        else:
+            logger.info('Worker setup for "{}" namespace'.format(namespace))
         success &= worker.run()
     logger.info(execution_summary.summary(worker))
     return dict(success=success, worker=worker)
@@ -272,3 +354,36 @@ def build(tasks, worker_scheduler_factory=None, **env_params):
         env_params["no_lock"] = True
 
     return _schedule_and_run(tasks, worker_scheduler_factory, override_defaults=env_params)['success']
+
+
+def build_namespace(namespace, tasks=None, worker_scheduler_factory=None, **env_params):
+    """
+    Run internally, bypassing the cmdline parsing.
+
+    Useful if you have some luigi code that you want to run internally.
+    Example:
+
+    .. code-block:: python
+
+        luigi.build([MyTask1(), MyTask2()], local_scheduler=True)
+
+    One notable difference is that `build` defaults to not using
+    the identical process lock. Otherwise, `build` would only be
+    callable once from each process.
+
+    :param tasks:
+    :param worker_scheduler_factory:
+    :param env_params:
+    :return: True if there were no scheduling errors, even if tasks may fail.
+    """
+    if "no_lock" not in env_params:
+        env_params["no_lock"] = True
+
+    if namespace == 'init' and tasks is None:
+        raise ValueError('"init" namespace must have tasks!')
+
+    if namespace != 'init' and tasks is not None:
+        raise ValueError(
+            'you cannot set tasks for a namespace that is not "init"')
+
+    return _run_namespace_tasks(namespace, tasks, worker_scheduler_factory, override_defaults=env_params)['success']

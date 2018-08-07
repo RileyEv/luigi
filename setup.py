@@ -1,3 +1,12 @@
+# @Author: Riley Evans
+# @Date:   2018-08-02T11:39:56+01:00
+# @Email:  revans35@jaguarlandrover.com
+# @Project: DIY Report Automation
+# @Filename: setup.py
+# @Last modified by:   Riley Evans
+# @Last modified time: 2018-08-07T11:10:14+01:00
+
+
 # Copyright (c) 2012 Spotify AB
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -24,7 +33,8 @@ def get_static_files(path):
                         "*.eot", "*.svg", "*.ttf", "*.woff", "*.woff2"]]
 
 
-luigi_package_data = sum(map(get_static_files, ["luigi/static", "luigi/templates"]), [])
+luigi_package_data = sum(
+    map(get_static_files, ["luigi/static", "luigi/templates"]), [])
 
 readme_note = """\
 .. note::
@@ -70,6 +80,7 @@ setup(
         'console_scripts': [
             'luigi = luigi.cmdline:luigi_run',
             'luigid = luigi.cmdline:luigid',
+            'luigiw = luigi.cmdline:luigiw',
             'luigi-grep = luigi.tools.luigi_grep:main',
             'luigi-deps = luigi.tools.deps:main',
             'luigi-deps-tree = luigi.tools.deps_tree:main'

@@ -1,3 +1,12 @@
+# @Author: Riley Evans
+# @Date:   2018-08-02T11:39:56+01:00
+# @Email:  revans35@jaguarlandrover.com
+# @Project: DIY Report Automation
+# @Filename: rpc.py
+# @Last modified by:   Riley Evans
+# @Last modified time: 2018-08-07T12:55:37+01:00
+
+
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012-2015 Spotify AB
@@ -111,10 +120,12 @@ class RemoteScheduler(object):
         config = configuration.get_config()
 
         if connect_timeout is None:
-            connect_timeout = config.getfloat('core', 'rpc-connect-timeout', 10.0)
+            connect_timeout = config.getfloat(
+                'core', 'rpc-connect-timeout', 10.0)
         self._connect_timeout = connect_timeout
 
-        self._rpc_retry_attempts = config.getint('core', 'rpc-retry-attempts', 3)
+        self._rpc_retry_attempts = config.getint(
+            'core', 'rpc-retry-attempts', 3)
         self._rpc_retry_wait = config.getint('core', 'rpc-retry-wait', 30)
 
         if HAS_REQUESTS:
@@ -133,10 +144,12 @@ class RemoteScheduler(object):
         while attempt < self._rpc_retry_attempts:
             attempt += 1
             if last_exception:
-                logger.info("Retrying attempt %r of %r (max)" % (attempt, self._rpc_retry_attempts))
+                logger.info("Retrying attempt %r of %r (max)" %
+                            (attempt, self._rpc_retry_attempts))
                 self._wait()  # wait for a bit and retry
             try:
-                response = self._fetcher.fetch(full_url, body, self._connect_timeout)
+                response = self._fetcher.fetch(
+                    full_url, body, self._connect_timeout)
                 break
             except self._fetcher.raises as e:
                 last_exception = e
@@ -160,7 +173,8 @@ class RemoteScheduler(object):
             response = json.loads(page)["response"]
             if allow_null or response is not None:
                 return response
-        raise RPCError("Received null response from remote scheduler %r" % self._url)
+        raise RPCError(
+            "Received null response from remote scheduler %r" % self._url)
 
 
 for method_name, method in RPC_METHODS.items():

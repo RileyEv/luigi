@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-03T13:45:55+01:00
+# @Last modified time: 2018-08-07T12:55:30+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -1139,7 +1139,7 @@ class Scheduler(object):
         }
 
     @rpc_method(allow_null=False)
-    def get_work(self, host=None, assistant=False, current_tasks=None, worker=None, **kwargs):
+    def get_work(self, host=None, assistant=False, current_tasks=None, worker=None, namespace=None ** kwargs):
         # TODO: remove any expired nodes
 
         # Algo: iterate over all nodes, find the highest priority node no dependencies and available
@@ -1152,6 +1152,9 @@ class Scheduler(object):
 
         # TODO: remove tasks that can't be done, figure out if the worker has absolutely
         # nothing it can wait for
+
+        def task_id_to_namespace(task_id):
+            return '.'.join(task_id.split('.')[:-1])
 
         if self._config.prune_on_get_work:
             self.prune()
@@ -1179,7 +1182,8 @@ class Scheduler(object):
         if current_tasks is not None:
             ct_set = set(current_tasks)
             for task in sorted(self._state.get_active_tasks_by_status(RUNNING), key=self._rank):
-                if task.worker_running == worker_id and task.id not in ct_set:
+                if (task.worker_running == worker_id and task.id not in ct_set
+                        and task_id_to_namespace(task_id=task.id) == namespace):
                     best_task = task
 
         if current_tasks is not None:
@@ -1223,7 +1227,9 @@ class Scheduler(object):
                 for resource, amount in six.iteritems((getattr(task, 'resources_running', task.resources) or {})):
                     greedy_resources[resource] += amount
 
-            if self._schedulable(task) and self._has_resources(task.resources, greedy_resources):
+            if (self._schedulable(task)
+                and self._has_resources(task.resources, greedy_resources)
+                    and task_id_to_namespace(task_id=task.id) == namespace):
                 in_workers = (
                     assistant and task.runnable) or worker_id in task.workers
                 if in_workers and self._has_resources(task.resources, used_resources):
@@ -1455,11 +1461,6 @@ class Scheduler(object):
         """
         Query for a subset of tasks by status.
         """
-        if namespace:
-            task_dict = self._state.get_tasks_by_namespace(namespace)
-        else:
-            self._state
-            task_dict = self._tasks
 
         if not search:
             count_limit = max_shown_tasks or self._config.max_shown_tasks

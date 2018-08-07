@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T13:16:48+01:00
+# @Last modified time: 2018-08-07T13:22:56+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -464,7 +464,7 @@ class SimpleTaskState(object):
     def _filter_tasks_by_namespace(self, tasks, namespace=None):
         if namespace:
             filtered_tasks = {}
-            for id, task in tasks.iteritems():
+            for id, task in tasks.items():
                 if '.' in id:
                     task_namespace = id.split('.')[0]
                     if task_namespace == namespace:

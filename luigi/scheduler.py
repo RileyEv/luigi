@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T14:02:53+01:00
+# @Last modified time: 2018-08-07T14:12:07+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -472,7 +472,10 @@ class SimpleTaskState(object):
         else:
             filtered_tasks = tasks
         if iterator:
-            return six.itervalues(filtered_tasks)
+            if namespace:
+                return six.itervalues(filtered_tasks)
+            else:
+                return filtered_tasks
         else:
             return filtered_tasks
 

@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T13:09:52+01:00
+# @Last modified time: 2018-08-07T13:16:48+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -521,9 +521,9 @@ class SimpleTaskState(object):
 
     def get_active_task_count_for_status(self, status, namespace=None):
         if status:
-            return len(self._filter_tasks_by_namespace(self._status_tasks[status]), namespace)
+            return len(self._filter_tasks_by_namespace(self._status_tasks[status], namespace))
         else:
-            return len(self._filter_tasks_by_namespace(self._tasks), namespace)
+            return len(self._filter_tasks_by_namespace(self._tasks, namespace))
 
     def get_batch_running_tasks(self, batch_id):
         assert batch_id is not None

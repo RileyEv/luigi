@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: worker.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T15:27:06+01:00
+# @Last modified time: 2018-08-07T15:33:33+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -1333,3 +1333,9 @@ class NamespaceWorker(Worker):
             n_pending_last_scheduled=r.get('n_pending_last_scheduled', 0),
             worker_state=r.get('worker_state', WORKER_STATE_ACTIVE),
         )
+
+    def _keep_alive(self, get_work_response):
+        if self._namespace != 'init':
+            return True
+        else:
+            return super(NamespaceWorker, self)._keep_alive(get_work_response)

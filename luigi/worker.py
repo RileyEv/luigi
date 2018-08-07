@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: worker.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T12:59:41+01:00
+# @Last modified time: 2018-08-07T15:27:06+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -1274,7 +1274,13 @@ class NamespaceWorker(Worker):
     Namespace Specific Worker.
     """
 
-    def _get_work(self, namespace):
+    def __init__(self, scheduler=None, worker_id=None, worker_processes=1, namespace=None, assistant=False, **kwargs):
+        self._namespace = namespace
+        super(NamespaceWorker, self).__init__(
+            scheduler, worker_id, worker_processes, assistant, **kwargs)
+
+    def _get_work(self):
+        namespace = self._namespace
         if self._stop_requesting_work:
             return GetWorkResponse(None, 0, 0, 0, 0, WORKER_STATE_DISABLED)
 

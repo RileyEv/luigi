@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: setup.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T11:10:14+01:00
+# @Last modified time: 2018-08-07T13:18:48+01:00
 
 
 # Copyright (c) 2012 Spotify AB
@@ -60,7 +60,7 @@ if os.environ.get('READTHEDOCS', None) == 'True':
 
 setup(
     name='luigi',
-    version='2.7.6',
+    version='2.7.7',
     description='Workflow mgmgt + task scheduling + dependency resolution',
     long_description=long_description,
     author='The Luigi Authors',

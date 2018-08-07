@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T13:58:59+01:00
+# @Last modified time: 2018-08-07T14:02:53+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -461,7 +461,7 @@ class SimpleTaskState(object):
         self._active_workers = {}  # map from id to a Worker object
         self._task_batchers = {}
 
-    def _filter_tasks_by_namespace(self, tasks, namespace=None):
+    def _filter_tasks_by_namespace(self, tasks, namespace=None, iterator=False):
         if namespace:
             filtered_tasks = {}
             for id, task in tasks.items():
@@ -471,7 +471,10 @@ class SimpleTaskState(object):
                         tasks[id] = task
         else:
             filtered_tasks = tasks
-        return six.itervalues(filtered_tasks)
+        if iterator:
+            return six.itervalues(filtered_tasks)
+        else:
+            return filtered_tasks
 
     def get_tasks_by_namespace(self, namespace):
         return self._filter_tasks_by_namespace(self._tasks)
@@ -1484,7 +1487,7 @@ class Scheduler(object):
         tasks = self._state._filter_tasks_by_namespace(
             self._state._status_tasks[
                 status
-            ].items() if status else self._state._tasks, namespace)
+            ].items() if status else self._state._tasks, namespace, iterator=True)
         for task in filter(filter_func, tasks):
             if task.status != PENDING or not upstream_status or upstream_status == self._upstream_status(task.id, upstream_status_table):
                 serialized = self._serialize_task(task.id, include_deps=False)

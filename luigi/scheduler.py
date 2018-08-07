@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T12:55:30+01:00
+# @Last modified time: 2018-08-07T13:09:52+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -1139,7 +1139,7 @@ class Scheduler(object):
         }
 
     @rpc_method(allow_null=False)
-    def get_work(self, host=None, assistant=False, current_tasks=None, worker=None, namespace=None ** kwargs):
+    def get_work(self, host=None, assistant=False, current_tasks=None, worker=None, namespace=None, **kwargs):
         # TODO: remove any expired nodes
 
         # Algo: iterate over all nodes, find the highest priority node no dependencies and available

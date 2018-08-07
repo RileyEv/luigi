@@ -4,7 +4,7 @@
 # @Project: DIY Report Automation
 # @Filename: scheduler.py
 # @Last modified by:   Riley Evans
-# @Last modified time: 2018-08-07T13:22:56+01:00
+# @Last modified time: 2018-08-07T13:58:59+01:00
 
 
 # -*- coding: utf-8 -*-
@@ -471,7 +471,7 @@ class SimpleTaskState(object):
                         tasks[id] = task
         else:
             filtered_tasks = tasks
-        return filtered_tasks
+        return six.itervalues(filtered_tasks)
 
     def get_tasks_by_namespace(self, namespace):
         return self._filter_tasks_by_namespace(self._tasks)
@@ -1481,8 +1481,10 @@ class Scheduler(object):
             def filter_func(t):
                 return all(term in t.pretty_id for term in terms)
 
-        tasks = self._state._filter_tasks_by_namespace(self._state.get_active_tasks_by_status(
-            status) if status else self._state.get_active_tasks(), namespace)
+        tasks = self._state._filter_tasks_by_namespace(
+            self._state._status_tasks[
+                status
+            ].items() if status else self._state._tasks, namespace)
         for task in filter(filter_func, tasks):
             if task.status != PENDING or not upstream_status or upstream_status == self._upstream_status(task.id, upstream_status_table):
                 serialized = self._serialize_task(task.id, include_deps=False)
